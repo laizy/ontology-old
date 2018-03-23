@@ -126,6 +126,14 @@ func (self *Store) GetBestBlock() (BestBlock, error) {
 	}, nil
 }
 
+func (self *Store) GetGenesisHeader() (*types.Header, error) {
+	if self.genesisBlock == nil {
+		return nil, errors.New("fresh db")
+	}
+
+	return self.genesisBlock.Header, nil
+}
+
 func (self *Store) GetBestHeader() (*types.Header, error) {
 	if self.bestBlockHeader == nil {
 		return nil, errors.New("fresh db")
@@ -185,7 +193,7 @@ func (self *Store) Close() error {
 	return err
 }
 
-func (self *Store) saveTransaction(tx *tx.Transaction, height uint32) error {
+func (self *Store) saveTransaction(tx *tx.Transaction, height uint32) {
 	// generate key with DATA_TRANSACTION prefix
 	key := GenDataTransactionKey(tx.Hash())
 	defer keyPool.Put(key)
@@ -197,7 +205,6 @@ func (self *Store) saveTransaction(tx *tx.Transaction, height uint32) error {
 
 	// put value
 	self.db.BatchPut(key.Bytes(), value.Bytes())
-	return nil
 }
 
 func (self *Store) PersistBlock(block *types.Block) error {
@@ -211,10 +218,7 @@ func (self *Store) PersistBlock(block *types.Block) error {
 
 	self.db.NewBatch()
 	for _, txn := range block.Transactions {
-		err := self.saveTransaction(txn, height)
-		if err != nil {
-			return err
-		}
+		 self.saveTransaction(txn, height)
 	}
 
 	// is genesis block

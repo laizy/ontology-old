@@ -60,7 +60,7 @@ func (self *validator) Receive(context actor.Context) {
 	case *actor.Stopped:
 		log.Info("Validator Stopped")
 	case *vatypes.CheckTx:
-		log.Info("Validator receive tx")
+		log.Infof("stateless-validator receive tx %x", msg.Tx.Hash())
 		sender := context.Sender()
 		errCode := validation.VerifyTransaction(&msg.Tx)
 

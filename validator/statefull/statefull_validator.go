@@ -28,6 +28,7 @@ import (
 	"github.com/ontio/ontology/validator/db"
 	vatypes "github.com/ontio/ontology/validator/types"
 	"github.com/ontio/ontology-eventbus/actor"
+	ledgerActor "github.com/Ontology/core/ledger/actor"
 )
 
 type Validator interface {
@@ -40,16 +41,36 @@ type validator struct {
 	pid       *actor.PID
 	id        string
 	bestBlock db.BestBlock
+	db        db.TransactionProvider
+	knownHeight  uint32
+	ledger *actor.PID
 }
 
-func NewValidator(id string) (Validator, error) {
+func NewValidator(id string, ledger *actor.PID, genesisBlock *types.Block) (Validator, error) {
+	store, err := db.NewStore("Chain/statefull.db")
 
-	validator := &validator{id: id}
+	header, err := store.GetGenesisHeader()
+	// fresh db
+	if err != nil {
+		err := store.PersistBlock(genesisBlock)
+		if err != nil {
+			return nil, err
+		}
+	} else if header.Hash() != genesisBlock.Hash() {
+		return nil, fmt.Errorf("mismatched ledger! persisted genesis block hash %x, given %x ",
+			header.Hash(), genesisBlock.Hash())
+	}
+
+	validator := &validator{id: id, ledger:ledger, db: store}
 	props := actor.FromProducer(func() actor.Actor {
 		return validator
 	})
 
 	pid, err := actor.SpawnNamed(props, id)
+	if err != nil {
+		return nil, err
+	}
+
 	validator.pid = pid
 	return validator, err
 }
@@ -57,13 +78,13 @@ func NewValidator(id string) (Validator, error) {
 func (self *validator) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
 	case *actor.Started:
-		log.Info("Validator started and be ready to receive txn")
+		log.Info("statefull-validator started and be ready to receive txn")
 	case *actor.Stopping:
-		log.Info("Validator stopping")
+		log.Info("statefull-validator stopping")
 	case *actor.Restarting:
-		log.Info("Validator Restarting")
+		log.Info("statefull-validator Restarting")
 	case *vatypes.CheckTx:
-		log.Info("Validator receive tx")
+		log.Infof("statefull-validator receive tx %x", msg.Tx.Hash())
 		sender := context.Sender()
 		height := ledger.DefLedger.GetCurrentBlockHeight()
 
@@ -90,16 +111,41 @@ func (self *validator) Receive(context actor.Context) {
 	case *vatypes.UnRegisterAck:
 		context.Self().Stop()
 	case *types.Block:
+		self.knownHeight = msg.Header.Height
+		bestBlock, _ := self.db.GetBestBlock()
 
-		//bestBlock, _ := self.db.GetBestBlock()
-		//if bestBlock.Height+1 < msg.Header.Height {
-		//	// add sync block request
-		//} else if bestBlock.Height+1 == msg.Header.Height {
-		//	self.db.PersistBlock(msg)
-		//}
+		if bestBlock.Height+1 < msg.Header.Height {
+			self.ledger.Request(ledgerActor.GetBlockByHeightReq{ Height: bestBlock.Height + 1}, self.pid)
+		} else if bestBlock.Height+1 == msg.Header.Height {
+			err := self.db.PersistBlock(msg)
+			if err != nil {
+				log.Errorf("statefull-validator: persist block error", err)
+				return
+			}
+		}
+
+	case *ledgerActor.GetBlockByHeightRsp:
+		if msg.Error != nil {
+			return
+		}
+
+		block := msg.Block
+		bestBlock, _ := self.db.GetBestBlock()
+		if bestBlock.Height+1 < block.Header.Height {
+			self.ledger.Request(ledgerActor.GetBlockByHeightReq{ Height: bestBlock.Height + 1}, self.pid)
+		} else if bestBlock.Height+1 == block.Header.Height {
+			err := self.db.PersistBlock(block)
+			if err != nil {
+				log.Errorf("statefull-validator: persist block error", err)
+				return
+			}
+			if block.Header.Height < self.knownHeight {
+				self.ledger.Request(ledgerActor.GetBlockByHeightReq{ Height: bestBlock.Height + 1}, self.pid)
+			}
+		}
 
 	default:
-		log.Info("statefull-validator:Unknown msg ", msg, "type", reflect.TypeOf(msg))
+		log.Info("statefull-validator: unknown msg ", msg, "type", reflect.TypeOf(msg))
 	}
 
 }
