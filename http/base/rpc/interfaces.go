@@ -34,6 +34,7 @@ import (
 	bactor "github.com/ontio/ontology/http/base/actor"
 	bcomn "github.com/ontio/ontology/http/base/common"
 	berr "github.com/ontio/ontology/http/base/error"
+	vmtypes "github.com/Ontology/vm/neovm/types"
 )
 
 func GetGenerateBlockTime(params []interface{}) map[string]interface{} {
@@ -487,11 +488,56 @@ func GetBalance(params []interface{}) map[string]interface{} {
 		appove.SetBytes(ongappove)
 	}
 	rsp := &bcomn.BalanceOfRsp{
-		Ont:       ont.String(),
-		Ong:       ong.String(),
+		Ont: ont.String(),
+		Ong: ong.String(),
 		OngAppove: appove.String(),
 	}
 
+	return responseSuccess(rsp)
+}
+
+func GetContractBalance(params []interface{}) map[string]interface{} {
+	if len(params) < 2 {
+		return responsePack(berr.INVALID_PARAMS, "")
+	}
+
+	contractHash, ok := params[0].(string)
+	if !ok {
+		return responsePack(berr.INVALID_PARAMS, "")
+	}
+
+	b, err := hex.DecodeString(contractHash)
+	if err != nil {
+		return responsePack(berr.INVALID_PARAMS, "")
+	}
+
+	contractAddr, err := common.AddressParseFromBytes(b)
+
+	if err != nil {
+		return responsePack(berr.INVALID_PARAMS, "")
+	}
+
+	hexAddr, ok := params[1].(string)
+	if !ok {
+		return responsePack(berr.INVALID_PARAMS, "")
+	}
+
+	address, err := hex.DecodeString(hexAddr)
+	if err != nil {
+		return responsePack(berr.INVALID_PARAMS, "")
+	}
+
+	storage, err := bactor.GetStorageItem(contractAddr, address[:])
+	if err != nil {
+		log.Errorf("GetContractBalanceOf GetStorageItem  contract address:%s, hex account:%s error:%s", contractAddr, hexAddr, err)
+		return responsePack(berr.INTERNAL_ERROR, "internal error")
+	}
+
+	rsp := &struct {
+		Balance int64
+	}{
+		vmtypes.ConvertBytesToBigInteger(storage).Int64(),
+	}
 	return responseSuccess(rsp)
 }
 

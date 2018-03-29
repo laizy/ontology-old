@@ -51,6 +51,8 @@ func StartRPCServer() {
 	rpc.HandleFunc("getblockheightbytxhash", rpc.GetBlockHeightByTxHash)
 
 	rpc.HandleFunc("getbalance", rpc.GetBalance)
+	// Get Nep-5 smart contract account balance
+	rpc.HandleFunc("getcontractbalance", rpc.GetContractBalance)
 
 	err := http.ListenAndServe(":"+strconv.Itoa(cfg.Parameters.HttpJsonPort), nil)
 	if err != nil {
