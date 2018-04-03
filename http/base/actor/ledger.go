@@ -210,3 +210,17 @@ func GetEventNotifyByHeight(height uint32) ([]common.Uint256, error) {
 		return rsp.TxHashes, rsp.Error
 	}
 }
+
+func GetMerkleProof(proofHeight uint32,rootHeight uint32) ([]common.Uint256, error) {
+	future := defLedgerPid.RequestFuture(&lactor.GetMerkleProofReq{proofHeight,rootHeight}, REQ_TIMEOUT*time.Second)
+	result, err := future.Result()
+	if err != nil {
+		log.Errorf(ERR_ACTOR_COMM, err)
+		return nil, err
+	}
+	if rsp, ok := result.(*lactor.GetMerkleProofRsp); !ok {
+		return nil, errors.New("fail")
+	} else {
+		return rsp.Proof, rsp.Error
+	}
+}

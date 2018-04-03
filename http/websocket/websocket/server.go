@@ -164,6 +164,7 @@ func (self *WsServer) registryMethod() {
 		"sendrawtransaction":     {handler: rest.SendRawTransaction},
 		"heartbeat":              {handler: heartbeat},
 		"getstorage":             {handler: rest.GetStorage},
+		"getmerkleproof":        {handler: rest.GetMerkleProof},
 
 		"getsessioncount": {handler: getsessioncount},
 	}

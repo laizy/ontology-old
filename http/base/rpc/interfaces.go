@@ -469,3 +469,61 @@ func GetBalance(params []interface{}) map[string]interface{} {
 	return responseSuccess(rsp)
 }
 
+func GetMerkleProof(params []interface{}) map[string]interface{} {
+	if len(params) < 1 {
+		return responsePack(berr.INVALID_PARAMS, "")
+	}
+	str := params[0].(string)
+	hex, err := hex.DecodeString(str)
+	if err != nil {
+		return responsePack(berr.INVALID_PARAMS, "")
+	}
+	var hash common.Uint256
+	if err := hash.Deserialize(bytes.NewReader(hex)); err != nil {
+		return responsePack(berr.INVALID_PARAMS, "")
+	}
+	height, err := bactor.GetBlockHeightByTxHashFromStore(hash)
+	if err != nil {
+		return responsePack(berr.INVALID_PARAMS, "")
+	}
+	blkhash, err := bactor.GetBlockHashFromStore(height)
+	if err != nil {
+		return responsePack(berr.INVALID_PARAMS, "")
+	}
+	blk, err := bactor.GetBlockFromStore(blkhash)
+	if err != nil {
+		return responsePack(berr.INVALID_PARAMS, "")
+	}
+
+	curHeight, err := bactor.BlockHeight()
+	if err != nil {
+		return responsePack(berr.INVALID_PARAMS, "")
+	}
+	curblkhash, err := bactor.GetBlockHashFromStore(curHeight)
+	if err != nil {
+		return responsePack(berr.INVALID_PARAMS, "")
+	}
+	curblk, err := bactor.GetBlockFromStore(curblkhash)
+	if err != nil {
+		return responsePack(berr.INVALID_PARAMS, "")
+	}
+	proof, err := bactor.GetMerkleProof(uint32(height), uint32(curHeight))
+	if err != nil {
+		return responsePack(berr.INTERNAL_ERROR, "")
+	}
+	var hashes []string
+	for _, v := range proof {
+		hashes = append(hashes, common.ToHexString(v[:]))
+	}
+	type merkleProof struct {
+		Type           string
+		BlockRoot      string
+		BlockHeight    uint32
+		CurBlockRoot   string
+		CurBlockHeight uint32
+		TargetHashes   []string
+	}
+	return responseSuccess(merkleProof{"MerkleProof", common.ToHexString(blk.Header.BlockRoot[:]), height,
+		common.ToHexString(curblk.Header.BlockRoot[:]), curHeight, hashes})
+}
+
