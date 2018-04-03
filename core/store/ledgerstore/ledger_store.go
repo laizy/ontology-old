@@ -857,6 +857,10 @@ func (this *LedgerStoreImp) GetBookkeeperState() (*states.BookkeeperState, error
 	return this.stateStore.GetBookkeeperState()
 }
 
+func (this *LedgerStoreImp) GetMerkleProof(m, n uint32) ([]common.Uint256, error) {
+	return this.stateStore.GetMerkleProof(m, n)
+}
+
 func (this *LedgerStoreImp) GetContractState(contractHash common.Address) (*payload.DeployCode, error) {
 	return this.stateStore.GetContractState(contractHash)
 }
