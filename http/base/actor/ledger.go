@@ -42,6 +42,19 @@ func SetLedgerPid(actr *actor.PID) {
 	defLedgerPid = actr
 }
 
+func GetHeaderByHeight(height uint32) (*types.Header, error) {
+	future := defLedgerPid.RequestFuture(&lactor.GetHeaderByHeightReq{height}, REQ_TIMEOUT*time.Second)
+	result, err := future.Result()
+	if err != nil {
+		log.Errorf(ERR_ACTOR_COMM, err)
+		return nil, err
+	}
+	if rsp, ok := result.(*lactor.GetHeaderByHeightRsp); !ok {
+		return nil, errors.New("fail")
+	} else {
+		return rsp.Header, rsp.Error
+	}
+}
 func GetBlockHashFromStore(height uint32) (common.Uint256, error) {
 	future := defLedgerPid.RequestFuture(&lactor.GetBlockHashReq{height}, REQ_TIMEOUT*time.Second)
 	result, err := future.Result()

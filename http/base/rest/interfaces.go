@@ -443,11 +443,7 @@ func GetMerkleProof(cmd map[string]interface{}) map[string]interface{} {
 	if err != nil {
 		return ResponsePack(berr.INVALID_PARAMS)
 	}
-	blkhash, err := bactor.GetBlockHashFromStore(height)
-	if err != nil {
-		return ResponsePack(berr.INVALID_PARAMS)
-	}
-	blk, err := bactor.GetBlockFromStore(blkhash)
+	header, err := bactor.GetHeaderByHeight(height)
 	if err != nil {
 		return ResponsePack(berr.INVALID_PARAMS)
 	}
@@ -456,11 +452,7 @@ func GetMerkleProof(cmd map[string]interface{}) map[string]interface{} {
 	if err != nil {
 		return ResponsePack(berr.INVALID_PARAMS)
 	}
-	curblkhash, err := bactor.GetBlockHashFromStore(curHeight)
-	if err != nil {
-		return ResponsePack(berr.INVALID_PARAMS)
-	}
-	curblk, err := bactor.GetBlockFromStore(curblkhash)
+	curHeader, err := bactor.GetHeaderByHeight(curHeight)
 	if err != nil {
 		return ResponsePack(berr.INVALID_PARAMS)
 	}
@@ -480,7 +472,7 @@ func GetMerkleProof(cmd map[string]interface{}) map[string]interface{} {
 		CurBlockHeight uint32
 		TargetHashes   []string
 	}
-	resp["Result"] = merkleProof{"MerkleProof", common.ToHexString(blk.Header.BlockRoot[:]), height,
-		common.ToHexString(curblk.Header.BlockRoot[:]), curHeight, hashes}
+	resp["Result"] = merkleProof{"MerkleProof", common.ToHexString(header.BlockRoot[:]), height,
+		common.ToHexString(curHeader.BlockRoot[:]), curHeight, hashes}
 	return resp
 }
