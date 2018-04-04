@@ -208,11 +208,17 @@ func GetBlockByHeight(cmd map[string]interface{}) map[string]interface{} {
 		return ResponsePack(berr.INVALID_PARAMS)
 	}
 	index := uint32(height)
-	hash, err := bactor.GetBlockHashFromStore(index)
+	block, err := bactor.GetBlockByHeight(index)
 	if err != nil {
 		return ResponsePack(berr.UNKNOWN_BLOCK)
 	}
-	resp["Result"], resp["Error"] = getBlock(hash, getTxBytes)
+	if getTxBytes {
+		w := bytes.NewBuffer(nil)
+		block.Serialize(w)
+		resp["Result"] =  common.ToHexString(w.Bytes())
+	} else {
+		resp["Result"] = bcomn.GetBlockInfo(block)
+	}
 	return resp
 }
 

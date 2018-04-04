@@ -55,6 +55,19 @@ func GetHeaderByHeight(height uint32) (*types.Header, error) {
 		return rsp.Header, rsp.Error
 	}
 }
+func GetBlockByHeight(height uint32) (*types.Block, error) {
+	future := defLedgerPid.RequestFuture(&lactor.GetBlockByHeightReq{height}, REQ_TIMEOUT*time.Second)
+	result, err := future.Result()
+	if err != nil {
+		log.Errorf(ERR_ACTOR_COMM, err)
+		return nil, err
+	}
+	if rsp, ok := result.(*lactor.GetBlockByHeightRsp); !ok {
+		return nil, errors.New("fail")
+	} else {
+		return rsp.Block, rsp.Error
+	}
+}
 func GetBlockHashFromStore(height uint32) (common.Uint256, error) {
 	future := defLedgerPid.RequestFuture(&lactor.GetBlockHashReq{height}, REQ_TIMEOUT*time.Second)
 	result, err := future.Result()
