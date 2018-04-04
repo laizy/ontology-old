@@ -508,14 +508,14 @@ func GetMerkleProof(params []interface{}) map[string]interface{} {
 		hashes = append(hashes, common.ToHexString(v[:]))
 	}
 	type merkleProof struct {
-		Type           string
-		BlockRoot      string
-		BlockHeight    uint32
-		CurBlockRoot   string
-		CurBlockHeight uint32
-		TargetHashes   []string
+		Type             string
+		TransactionsRoot string
+		BlockHeight      uint32
+		CurBlockRoot     string
+		CurBlockHeight   uint32
+		TargetHashes     []string
 	}
-	return responseSuccess(merkleProof{"MerkleProof", common.ToHexString(header.BlockRoot[:]), height,
+	return responseSuccess(merkleProof{"MerkleProof", common.ToHexString(header.TransactionsRoot[:]), height,
 		common.ToHexString(curHeader.BlockRoot[:]), curHeight, hashes})
 }
 

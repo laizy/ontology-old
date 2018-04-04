@@ -471,14 +471,14 @@ func GetMerkleProof(cmd map[string]interface{}) map[string]interface{} {
 		hashes = append(hashes, common.ToHexString(v[:]))
 	}
 	type merkleProof struct {
-		Type           string
-		BlockRoot      string
-		BlockHeight    uint32
-		CurBlockRoot   string
-		CurBlockHeight uint32
-		TargetHashes   []string
+		Type             string
+		TransactionsRoot string
+		BlockHeight      uint32
+		CurBlockRoot     string
+		CurBlockHeight   uint32
+		TargetHashes     []string
 	}
-	resp["Result"] = merkleProof{"MerkleProof", common.ToHexString(header.BlockRoot[:]), height,
+	resp["Result"] = merkleProof{"MerkleProof", common.ToHexString(header.TransactionsRoot[:]), height,
 		common.ToHexString(curHeader.BlockRoot[:]), curHeight, hashes}
 	return resp
 }

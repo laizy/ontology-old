@@ -20,12 +20,9 @@ package test
 
 import (
 	"bytes"
-	"fmt"
 	"math/big"
-	"os"
 	"testing"
 	"time"
-
 	"github.com/ontio/ontology/account"
 	"github.com/ontio/ontology/common"
 	"github.com/ontio/ontology/core/signature"
@@ -35,7 +32,60 @@ import (
 	"github.com/ontio/ontology/vm/neovm"
 	vmtypes "github.com/ontio/ontology/vm/types"
 	"github.com/ontio/ontology-crypto/keypair"
+	"github.com/stretchr/testify/assert"
+	"github.com/ontio/ontology/merkle"
+	"fmt"
+	"os"
 )
+
+func TestMerkleVerifier(t *testing.T) {
+	type merkleProof struct {
+		Type             string
+		TransactionsRoot string
+		BlockHeight      uint32
+		CurBlockRoot     string
+		CurBlockHeight   uint32
+		TargetHashes     []string
+	}
+	proof := merkleProof{
+		Type:             "MerkleProof",
+		TransactionsRoot: "78c5d536ef07985b6cb46c43fefe08dbd08b74e7df529f1f918441a9244cc516",
+		BlockHeight:      2,
+		CurBlockRoot:     "caf9d0a933ae71309fc492a66c643e32cbe2d4d3206099bfd4999e4af87cbedf",
+		CurBlockHeight:   352,
+		TargetHashes: []string{
+			"4c22b5e624c91fa114c257fe680ff7db248336ac679fe24dbc6d3f628bb11779",
+			"7298a4203a41f0089d0c5aa12a225a595fa025608b4453e173fb9f0c37b283f2",
+			"8f2993180bb4adfa2b3a5d62ba56929baf8ca44104b6a8f1606bec27fddb92f9",
+			"a58a62c945996c5753b95f76f2f71a66bf8d9575db6c8b401c2be119f6e91d8f",
+			"a9a7c8206601c3fb60152f97883a0be96e7965af9f4fb22191ce2154c213a6b1",
+			"1243fb80abbee1fdb9ff4107e5da04733cabdabc83c5d52de63e3566b8516794",
+			"ec0799f74b9100e632bd15ec0a3f0923fa01f28a9db6b9b9bef1c2eee0a59d5b",
+			"fd3cbbfd7ae4ee053a6d0ad7ab68dbab1744fef1733f85e67c87bc1092276f32",
+			"a3895ad9113d7862d7de84b6196359711f69262db2d62d1099c6ede2bfbc4146",
+		},
+	}
+
+	verify := merkle.NewMerkleVerifier()
+	var leaf_hash common.Uint256
+	bys, _ := common.HexToBytes(proof.TransactionsRoot)
+	leaf_hash.Deserialize(bytes.NewReader(bys))
+
+	var root_hash common.Uint256
+	bys, _ = common.HexToBytes(proof.CurBlockRoot)
+	root_hash.Deserialize(bytes.NewReader(bys))
+
+	var hashes []common.Uint256
+	for _, v := range proof.TargetHashes {
+		var hash common.Uint256
+		bys, _ = common.HexToBytes(v)
+		hash.Deserialize(bytes.NewReader(bys))
+		hashes = append(hashes, hash)
+	}
+	res := verify.VerifyLeafHashInclusion(leaf_hash, proof.BlockHeight, hashes, root_hash, proof.CurBlockHeight+1)
+	assert.Nil(t, res)
+
+}
 
 func TestCodeHash(t *testing.T) {
 	code, _ := common.HexToBytes("")
