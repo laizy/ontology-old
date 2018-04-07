@@ -35,7 +35,7 @@ import (
 
 var (
 	CurrentStateRoot = []byte("Current-State-Root")
-	BookerKeeper     = []byte("Booker-Keeper")
+	Bookkeeper       = []byte("Bookkeeper")
 )
 
 type StateStore struct {
@@ -293,9 +293,9 @@ func (this *StateStore) getCurrentBlockKey() []byte {
 }
 
 func (this *StateStore) getBookkeeperKey() ([]byte, error) {
-	key := make([]byte, 1+len(BookerKeeper))
+	key := make([]byte, 1+len(Bookkeeper))
 	key[0] = byte(scom.ST_BOOKKEEPER)
-	copy(key[1:], []byte(BookerKeeper))
+	copy(key[1:], []byte(Bookkeeper))
 	return key, nil
 }
 
