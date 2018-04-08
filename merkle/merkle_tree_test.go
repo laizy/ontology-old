@@ -158,7 +158,7 @@ func TestMerkleIncludeProof(t *testing.T) {
 
 	root := tree.Root()
 	for i := uint32(0); i < n; i++ {
-		proof := tree.InclusionProof(i, n)
+		proof, _ := tree.InclusionProof(i, n)
 		leaf_hash := tree.hasher.hash_leaf([]byte{byte(i + 1)})
 		res := verify.VerifyLeafHashInclusion(leaf_hash, i, proof, root, n)
 		if res != nil {

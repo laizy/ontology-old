@@ -161,9 +161,10 @@ func (self *WsServer) registryMethod() {
 		"getblockheight":         {handler: rest.GetBlockHeight},
 		"getgenerateblocktime":   {handler: rest.GetGenerateBlockTime},
 		"gettransaction":         {handler: rest.GetTransactionByHash},
-		"sendrawtransaction":     {handler: rest.SendRawTransaction},
+		"sendrawtransaction":     {handler: rest.SendRawTransaction,pushFlag:true},
 		"heartbeat":              {handler: heartbeat},
 		"getstorage":             {handler: rest.GetStorage},
+		"getmerkleproof":        {handler: rest.GetMerkleProof},
 
 		"getsessioncount": {handler: getsessioncount},
 	}
@@ -262,7 +263,7 @@ func (self *WsServer) IsValidMsg(reqMsg map[string]interface{}) bool {
 }
 func (self *WsServer) OnDataHandle(curSession *session.Session, bysMsg []byte, r *http.Request) bool {
 
-	var req = make(map[string]interface{})
+	var req= make(map[string]interface{})
 
 	if err := json.Unmarshal(bysMsg, &req); err != nil {
 		resp := rest.ResponsePack(Err.ILLEGAL_DATAFORMAT)
@@ -293,14 +294,15 @@ func (self *WsServer) OnDataHandle(curSession *session.Session, bysMsg []byte, r
 	if raw, ok := req["Raw"].(float64); ok {
 		req["Raw"] = strconv.FormatInt(int64(raw), 10)
 	}
-
-	req["Userid"] = curSession.GetSessionId()
 	resp := action.handler(req)
 	resp["Action"] = actionName
-	if txHash, ok := resp["Result"].(string); ok && action.pushFlag {
-		self.Lock()
-		defer self.Unlock()
-		self.TxHashMap[txHash] = curSession.GetSessionId()
+	resp["Id"] = req["Id"]
+	if action.pushFlag {
+		if error, _ := resp["Error"].(int64); ok && error == 0 {
+			if txHash, ok := resp["Result"].(string); ok {
+				self.SetTxHashMap(txHash, curSession.GetSessionId())
+			}
+		}
 	}
 	curSession.Send(marshalResp(resp))
 
