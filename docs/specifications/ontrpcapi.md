@@ -1,8 +1,8 @@
 # ONT Rpc Api
 
 * [Introduction](#Introduction)
-* [Rpc api list](#Rpc api list)
-* [Error code](#Error code)
+* [Rpc API list](#Rpc API list)
+* [Error code](#Errorcode)
 
 ## Introduction
 
@@ -23,7 +23,7 @@ Response parameter description:
 | error | int64 | error code |
 | jsonrpc | string | jsonrpc version |
 | id | int | any value |
-| result | object/string/bool | program execution result |
+| result | object | program execution result |
 
 Note: The type of result varies with the request.
 
@@ -65,7 +65,7 @@ Transaction field description
 | Sigs | []*Sig | signature array |
 | Hash | *Uint256 | transaction hash |
 
-## Rpc api list
+## Rpc API list
 
 | Method | Parameters | Description | Note |
 | :---| :---| :---| :---|
@@ -840,7 +840,7 @@ Response:
 }
 ```
 
-## Error code
+## Errorcode
 
 errorcode instruction
 

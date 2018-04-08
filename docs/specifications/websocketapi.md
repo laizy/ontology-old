@@ -17,8 +17,9 @@ This document describes the Websocket api format for the ws/wss used in the Onch
 | Action | string | action name |
 | Desc | string | description |
 | Error | int64 | error code |
-| Result | int/string/object | execute result |
+| Result | object | execute result |
 | Version | string | version information |
+| Id | int | req Id|
 
 ###  heartbeat
 if don't send heartbeat, the session expire after 5min
@@ -41,7 +42,7 @@ if don't send heartbeat, the session expire after 5min
 ```
 {
     "Action": "heartbeat",
-    "Desc": "SUCCESS"
+    "Desc": "SUCCESS",
     "Error": 0,
     "Result": {
         "SubscribeEvent":false,
@@ -51,6 +52,7 @@ if don't send heartbeat, the session expire after 5min
     }
     "Version": "1.0.0"
 }
+```
 
 ### 1. Get the generate block time
 return the time required to create a new block
@@ -70,7 +72,7 @@ return the time required to create a new block
 ```
 {
     "Action": "getgenerateblocktime",
-    "Desc": "SUCCESS"
+    "Desc": "SUCCESS",
     "Error": 0,
     "Result": 6,
     "Version": "1.0.0"

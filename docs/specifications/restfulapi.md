@@ -17,7 +17,7 @@ This document describes the restful api format for the http/https used in the On
 | Action | string | action name |
 | Desc | string | description |
 | Error | int64 | error code |
-| Result | int/string/object | execute result |
+| Result | object | execute result |
 | Version | string | version information |
 
 ### 1. Get the generate block time
