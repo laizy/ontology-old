@@ -817,7 +817,7 @@ Response:
    "jsonpc":"2.0",
    "result":{
         "Type": "MerkleProof",
-        "BlockRoot": "fe3a4ee8a44e3e588de55de1b8fe08f08b6184d9c062cf7316fb9481eb57b9e6",
+        "TransactionsRoot": "fe3a4ee8a44e3e588de55de1b8fe08f08b6184d9c062cf7316fb9481eb57b9e6",
         "BlockHeight": 600,
         "CurBlockRoot": "57476eba688531dec8555cb712835c7eda48a478431a2cfd3372aeee5298e711",
         "CurBlockHeight": 6478,
